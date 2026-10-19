@@ -21,14 +21,14 @@ app.use(logger);
 app.get("/", (req, res) => {
     res.status(200).json({
         mensaje: "Bienvenido a la API de Libros protegida con express-rate-limit (Campuslands)",
-        seguridad: "Middleware express-rate-limit activo en /api/ (Máx. 5 peticiones por minuto por IP)",
+        seguridad: "Middleware express-rate-limit activo en /api/ (Máx. 100 peticiones por minuto por IP, 10 en escrituras)",
         almacenamiento: "Arreglo de Libros en memoria RAM (sin base de datos externa)",
         endpoints: {
-            listar_juegos: "GET /api/libros",
+            listar_libros: "GET /api/libros",
             buscar_por_id: "GET /api/libros/:id",
-            crear_juego: "POST /api/libros",
-            actualizar_juego: "PUT /api/libros/:id",
-            eliminar_juego: "DELETE /api/libros/:id"
+            crear_libro: "POST /api/libros",
+            actualizar_libro: "PUT /api/libros/:id",
+            eliminar_libro: "DELETE /api/libros/:id"
         }
     });
 });
@@ -54,7 +54,9 @@ app.use((req, res) => {
 });
 
 
-// Manejador de errores global. IMPORTANTE: Tiene que llevar (err, req, res, next) aunque no use 'next', si no Express no se da cuenta que es de error.
+// Manejador de errores global. 
+// IMPORTANTE: 
+//      Tiene que llevar (err, req, res, next) aunque no use 'next', si no Express no se da cuenta que es de error.
 
 app.use(errorHandler);
 
@@ -65,7 +67,7 @@ if (process.env.NODE_ENV !== "test") {
     app.listen(PORT, () => {
         console.log(`\n=============================================================`);
         console.log(`Servidor de libros iniciado en http://localhost:${PORT}`);
-        console.log(`Rate Limit activo en /api/libros (Máx: 5 req / min)`);
+        console.log(`Rate Limit activo en /api/libros (Máx: 100 req / min, 10 escrituras / min)`);
         console.log(`=============================================================\n`);
     });
 }
