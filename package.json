@@ -2,9 +2,11 @@
   "name": "campuslands-express-ratelimit-interactivo",
   "version": "1.0.0",
   "description": "Aprender el uso de RateLimit, basado en libros.",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
-    "dev": "nodemon app.js --quiet"
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "test": "NODE_ENV=test node test/test-api.js"
   },
   "keywords": [],
   "author": "",
