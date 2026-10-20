@@ -52,6 +52,7 @@ const armarLibro = ({ titulo, autor, genero, anio, precio }) => ({
 
 // Revisa si ya existe un libro con el mismo título y autor
 // ignorarId sirve para que al actualizar no choque consigo mismo
+
 const existeDuplicado = ({ titulo, autor }, ignorarId = null) =>
     libros.some(
         (l) =>
@@ -61,8 +62,9 @@ const existeDuplicado = ({ titulo, autor }, ignorarId = null) =>
     );
 
 
-// 1. [GET] /api/libros - Listar todos los libros del arreglo
+// Listar todos los libros del arreglo
 // rateLimitInfo muestra cuántas peticiones quedan, para ver el rate limit en acción
+
 router.get("/", (req, res) => {
     res.status(200).json({
         exito: true,
@@ -79,8 +81,9 @@ router.get("/", (req, res) => {
 });
 
 
-// 2. [GET] /api/libros/:id - Buscar un libro por su ID
+// Buscar un libro por su ID
 // El ID ya lo validó router.param
+
 router.get("/:id", (req, res) => {
     res.status(200).json({
         exito: true,
@@ -90,12 +93,14 @@ router.get("/:id", (req, res) => {
 });
 
 
-// 3. [POST] /api/libros - Crear un nuevo libro en el arreglo
+// Crear un nuevo libro en el arreglo
 // Primero el limitador y después el validador
+
 router.post("/", escrituraLimiter, validarLibro, (req, res) => {
     const datos = armarLibro(req.body);
 
     // 409 porque el libro ya existe
+
     if (existeDuplicado(datos)) {
         return res.status(409).json({
             exito: false,
@@ -104,12 +109,14 @@ router.post("/", escrituraLimiter, validarLibro, (req, res) => {
     }
 
     // Saco el mayor id y le sumo 1 (con length + 1 se repetirían ids al borrar)
+
     const nuevoId = libros.reduce((max, l) => Math.max(max, l.id), 0) + 1;
 
     const nuevoLibro = { id: nuevoId, ...datos };
     libros.push(nuevoLibro);
 
     // Location con la URL del libro nuevo
+
     res.status(201)
         .location(`${req.baseUrl}/${nuevoId}`)
         .json({
@@ -120,9 +127,10 @@ router.post("/", escrituraLimiter, validarLibro, (req, res) => {
 });
 
 
-// 4. [PUT] /api/libros/:id - Actualizar un libro existente (reemplazo completo)
+
 // PUT reemplaza todo el libro, por eso se validan todos los campos
 // Lleva escrituraLimiter porque modifica datos
+
 router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
     const datos = armarLibro(req.body);
 
@@ -134,6 +142,7 @@ router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
     }
 
     // El id sale de la URL para que no lo puedan cambiar
+
     libros[req.indice] = { id: req.libroId, ...datos };
 
     res.status(200).json({
@@ -144,8 +153,9 @@ router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
 });
 
 
-// 5. [DELETE] /api/libros/:id - Eliminar un libro del arreglo
+// Eliminar un libro del arreglo
 // Lleva escrituraLimiter para que no borren todo muy rápido
+
 router.delete("/:id", escrituraLimiter, (req, res) => {
     const [libroEliminado] = libros.splice(req.indice, 1);
 
