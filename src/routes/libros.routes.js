@@ -8,6 +8,20 @@ import { escrituraLimiter } from "../middlewares/rateLimit.js";
 const router = Router();
 
 
+// Limitador solo para las rutas que modifican datos (POST, PUT, DELETE)
+// Lo pongo con router.use antes del router.param porque si no, el param responde 404
+// primero y los PUT/DELETE con ID que no existe nunca se contaban en el límite
+
+const METODOS_ESCRITURA = ["POST", "PUT", "PATCH", "DELETE"];
+
+router.use((req, res, next) => {
+    if (METODOS_ESCRITURA.includes(req.method)) {
+        return escrituraLimiter(req, res, next);
+    }
+    next();
+});
+
+
 // Valida el ID de la URL y busca el libro una sola vez
 // Uso router.param para no repetir el mismo código en cada ruta
 // Uso /^\d+$/ porque parseInt("3abc") daría 3 y eso estaría mal
@@ -94,9 +108,9 @@ router.get("/:id", (req, res) => {
 
 
 // Crear un nuevo libro en el arreglo
-// Primero el limitador y después el validador
+// El limitador ya corre en router.use, aquí solo se valida
 
-router.post("/", escrituraLimiter, validarLibro, (req, res) => {
+router.post("/", validarLibro, (req, res) => {
     const datos = armarLibro(req.body);
 
     // 409 porque el libro ya existe
@@ -129,9 +143,9 @@ router.post("/", escrituraLimiter, validarLibro, (req, res) => {
 
 
 // PUT reemplaza todo el libro, por eso se validan todos los campos
-// Lleva escrituraLimiter porque modifica datos
+// El escrituraLimiter de router.use también cuenta aquí
 
-router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
+router.put("/:id", validarLibro, (req, res) => {
     const datos = armarLibro(req.body);
 
     if (existeDuplicado(datos, req.libroId)) {
@@ -154,9 +168,9 @@ router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
 
 
 // Eliminar un libro del arreglo
-// Lleva escrituraLimiter para que no borren todo muy rápido
+// También cuenta en el escrituraLimiter para que no borren todo muy rápido
 
-router.delete("/:id", escrituraLimiter, (req, res) => {
+router.delete("/:id", (req, res) => {
     const [libroEliminado] = libros.splice(req.indice, 1);
 
     res.status(200).json({
