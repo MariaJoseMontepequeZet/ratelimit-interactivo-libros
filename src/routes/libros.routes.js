@@ -3,29 +3,15 @@ import { libros } from "../data/libros.db.js";
 import { validarLibro } from "../middlewares/validator.js";
 import { escrituraLimiter } from "../middlewares/rateLimit.js";
 
-/**
- * Enrutador modular de Libros (express.Router)
- * --------------------------------------------
- * Gestiona los 5 endpoints CRUD operando sobre el arreglo de libros en memoria.
- * Se monta en src/app.js bajo el prefijo "/api/libros".
- *
- * ¿Por qué un Router separado y no rutas sueltas en app.js?
- * Para que app.js solo se encargue de armar el servidor (middlewares globales, 404, errores)
- * y toda la lógica del recurso "libros" viva en un solo archivo fácil de encontrar y de probar.
- *
- * Límites de peticiones: el apiLimiter (general, por IP) ya se aplica en app.js sobre /api/,
- * así que aquí solo se agrega el escrituraLimiter (más estricto) a las rutas que modifican datos.
- */
+// Enrutador modular de Libros (express.Router)
+
 const router = Router();
 
 
-// Revisa que el ID de la URL sea un número entero positivo y busca el libro UNA sola vez.
-// ¿Por qué router.param y no repetir el código en cada ruta? Antes el mismo bloque de
-// parseInt + isNaN + findIndex estaba copiado 3 veces (GET, PUT y DELETE); si había que
-// corregir algo se corregía en un lugar y se olvidaba en los otros.
-// ¿Por qué Number.isInteger y /^\d+$/ y no solo parseInt? Porque parseInt("3abc") devuelve 3
-// y aceptaría IDs mal escritos como si fueran válidos.
-// Deja en req.indice la posición del libro, que PUT y DELETE necesitan para modificar el arreglo.
+// Valida el ID de la URL y busca el libro una sola vez
+// Uso router.param para no repetir el mismo código en cada ruta
+// Uso /^\d+$/ porque parseInt("3abc") daría 3 y eso estaría mal
+
 router.param("id", (req, res, next, valor) => {
     const id = /^\d+$/.test(valor) ? Number(valor) : NaN;
 
@@ -51,11 +37,10 @@ router.param("id", (req, res, next, valor) => {
 });
 
 
-// Arma el objeto libro con solo los campos permitidos.
-// ¿Por qué no guardar req.body completo? Porque el cliente podría mandar campos extra
-// (como "id" o "admin") y se guardarían en el arreglo; así solo entra lo que nosotros definimos.
-// ¿Por qué trim y Number aquí? Para que en el arreglo siempre queden textos limpios y el precio
-// como número, aunque llegue como "29.99" desde un formulario.
+// Arma el libro solo con los campos permitidos
+// No guardo req.body completo para que no se cuelen campos extra
+// trim y Number para guardar textos limpios y números
+
 const armarLibro = ({ titulo, autor, genero, anio, precio }) => ({
     titulo: titulo.trim(),
     autor: autor.trim(),
@@ -65,9 +50,8 @@ const armarLibro = ({ titulo, autor, genero, anio, precio }) => ({
 });
 
 
-// Busca si ya existe un libro con el mismo título y autor (ignorando mayúsculas).
-// ¿Por qué? Un catálogo con el mismo libro repetido es un error de datos, no una variante válida.
-// El parámetro "ignorarId" sirve para que al actualizar un libro no choque consigo mismo.
+// Revisa si ya existe un libro con el mismo título y autor
+// ignorarId sirve para que al actualizar no choque consigo mismo
 const existeDuplicado = ({ titulo, autor }, ignorarId = null) =>
     libros.some(
         (l) =>
@@ -78,8 +62,7 @@ const existeDuplicado = ({ titulo, autor }, ignorarId = null) =>
 
 
 // 1. [GET] /api/libros - Listar todos los libros del arreglo
-// ¿Por qué se incluye rateLimitInfo? Es un proyecto para aprender rate limit: así se ve en
-// cada respuesta cuántas peticiones quedan sin tener que mirar los headers.
+// rateLimitInfo muestra cuántas peticiones quedan, para ver el rate limit en acción
 router.get("/", (req, res) => {
     res.status(200).json({
         exito: true,
@@ -97,7 +80,7 @@ router.get("/", (req, res) => {
 
 
 // 2. [GET] /api/libros/:id - Buscar un libro por su ID
-// El ID ya viene validado y buscado por router.param, aquí solo se responde.
+// El ID ya lo validó router.param
 router.get("/:id", (req, res) => {
     res.status(200).json({
         exito: true,
@@ -108,12 +91,11 @@ router.get("/:id", (req, res) => {
 
 
 // 3. [POST] /api/libros - Crear un nuevo libro en el arreglo
-// Orden de los middlewares: primero el limitador (si ya se pasó del cupo ni se gasta tiempo
-// validando) y después el validador del body.
+// Primero el limitador y después el validador
 router.post("/", escrituraLimiter, validarLibro, (req, res) => {
     const datos = armarLibro(req.body);
 
-    // 409 Conflict: la petición está bien escrita pero choca con un dato que ya existe
+    // 409 porque el libro ya existe
     if (existeDuplicado(datos)) {
         return res.status(409).json({
             exito: false,
@@ -121,15 +103,13 @@ router.post("/", escrituraLimiter, validarLibro, (req, res) => {
         });
     }
 
-    // Se calcula el siguiente ID con reduce y no con Math.max(...arreglo): el spread
-    // revienta con arreglos muy grandes. Usar length + 1 tampoco sirve porque tras borrar
-    // un libro se repetirían IDs.
+    // Saco el mayor id y le sumo 1 (con length + 1 se repetirían ids al borrar)
     const nuevoId = libros.reduce((max, l) => Math.max(max, l.id), 0) + 1;
 
     const nuevoLibro = { id: nuevoId, ...datos };
     libros.push(nuevoLibro);
 
-    // Se devuelve el header Location con la URL del recurso creado, como pide REST para un 201
+    // Location con la URL del libro nuevo
     res.status(201)
         .location(`${req.baseUrl}/${nuevoId}`)
         .json({
@@ -141,8 +121,8 @@ router.post("/", escrituraLimiter, validarLibro, (req, res) => {
 
 
 // 4. [PUT] /api/libros/:id - Actualizar un libro existente (reemplazo completo)
-// PUT reemplaza el recurso entero, por eso el validador exige todos los campos.
-// Lleva escrituraLimiter porque modifica datos igual que el POST.
+// PUT reemplaza todo el libro, por eso se validan todos los campos
+// Lleva escrituraLimiter porque modifica datos
 router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
     const datos = armarLibro(req.body);
 
@@ -153,7 +133,7 @@ router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
         });
     }
 
-    // El id se toma de la URL y no del body para que nadie pueda cambiarlo al actualizar
+    // El id sale de la URL para que no lo puedan cambiar
     libros[req.indice] = { id: req.libroId, ...datos };
 
     res.status(200).json({
@@ -165,8 +145,7 @@ router.put("/:id", escrituraLimiter, validarLibro, (req, res) => {
 
 
 // 5. [DELETE] /api/libros/:id - Eliminar un libro del arreglo
-// Lleva escrituraLimiter porque borrar es la operación más destructiva: sin él se podría
-// vaciar el catálogo completo a ritmo del límite general.
+// Lleva escrituraLimiter para que no borren todo muy rápido
 router.delete("/:id", escrituraLimiter, (req, res) => {
     const [libroEliminado] = libros.splice(req.indice, 1);
 
