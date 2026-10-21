@@ -1,0 +1,84 @@
+# API de Libros con Rate Limit
+
+API REST hecha con Express para practicar `express-rate-limit`. Los libros se guardan en un arreglo en memoria, así que se reinician al apagar el servidor.
+
+## Instalación
+
+```bash
+npm install
+npm start
+```
+
+El servidor queda en `http://localhost:3000`. Para desarrollo se usa `npm run dev`: recarga automática al guardar y abre la interfaz web en el navegador (una sola vez).
+
+## Interfaz web
+
+Con el servidor corriendo, abre `http://localhost:3000/tienda`. Desde ahí se puede ver, crear, editar y eliminar libros. Tiene un medidor con las peticiones que quedan y un aviso con cuenta regresiva cuando la API responde 429.
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/` | Información de la API |
+| GET | `/api/libros` | Listar libros |
+| GET | `/api/libros/:id` | Buscar un libro |
+| POST | `/api/libros` | Crear un libro |
+| PUT | `/api/libros/:id` | Reemplazar un libro |
+| DELETE | `/api/libros/:id` | Eliminar un libro |
+
+Ejemplo de body para POST y PUT:
+
+```json
+{
+  "titulo": "El Principito",
+  "autor": "Antoine de Saint-Exupéry",
+  "genero": "Fábula",
+  "anio": 1943,
+  "precio": 9.99
+}
+```
+
+## Rate limit
+
+- **General:** 120 peticiones por minuto por IP en todo `/api/`.
+- **Escrituras:** 30 por minuto por IP en POST, PUT y DELETE.
+- Si se pasan responde `429` con `reintentar_en_segundos`.
+- Las respuestas traen los headers `RateLimit-*`.
+
+Se puede cambiar con variables de entorno:
+
+| Variable | Por defecto |
+| --- | --- |
+| `RATE_WINDOW_MS` | `60000` |
+| `RATE_LIMIT_API` | `120` |
+| `RATE_LIMIT_WRITE` | `30` |
+| `TRUST_PROXY` | apagado (poner `1` si hay un proxy delante) |
+| `PORT` | `3000` |
+
+## Códigos de respuesta
+
+- `200` / `201`: todo bien
+- `400`: ID inválido, datos incorrectos o JSON mal escrito
+- `404`: el libro o la ruta no existe
+- `413`: el body es muy grande (máximo 10kb)
+- `409`: el libro ya existe (mismo título y autor)
+- `429`: demasiadas peticiones
+
+## Pruebas
+
+```bash
+npm test
+```
+
+## Estructura
+
+```
+src/
+  app.js                 servidor y middlewares globales
+  routes/libros.routes.js  endpoints de libros
+  data/libros.db.js        arreglo de libros en memoria
+  middlewares/             logger, rateLimit, validator, errorHandler
+public/                  interfaz web (html, css y js)
+scripts/dev.js           script de npm run dev (abre el navegador)
+test/test-api.js         pruebas
+```

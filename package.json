@@ -2,9 +2,11 @@
   "name": "campuslands-express-ratelimit-interactivo",
   "version": "1.0.0",
   "description": "Aprender el uso de RateLimit, basado en libros.",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
-    "dev": "nodemon app.js --quiet"
+    "start": "node src/app.js",
+    "dev": "node scripts/dev.js",
+    "test": "node test/test-api.js"
   },
   "keywords": [],
   "author": "",
@@ -12,7 +14,6 @@
   "type": "module",
   "dependencies": {
     "express": "^5.3.0",
-    "express-rate-limit": "^8.7.1",
-    "nodemon": "^3.1.14"
+    "express-rate-limit": "^8.7.1"
   }
 }
