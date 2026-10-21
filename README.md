@@ -9,7 +9,11 @@ npm install
 npm start
 ```
 
-El servidor queda en `http://localhost:3000`. Para desarrollo con recarga automática se usa `npm run dev`.
+El servidor queda en `http://localhost:3000`. Para desarrollo se usa `npm run dev`: recarga automática al guardar y abre la interfaz web en el navegador (una sola vez).
+
+## Interfaz web
+
+Con el servidor corriendo, abre `http://localhost:3000/tienda`. Desde ahí se puede ver, crear, editar y eliminar libros. Tiene un medidor con las peticiones que quedan y un aviso con cuenta regresiva cuando la API responde 429.
 
 ## Endpoints
 
@@ -74,5 +78,7 @@ src/
   routes/libros.routes.js  endpoints de libros
   data/libros.db.js        arreglo de libros en memoria
   middlewares/             logger, rateLimit, validator, errorHandler
+public/                  interfaz web (html, css y js)
+scripts/dev.js           script de npm run dev (abre el navegador)
 test/test-api.js         pruebas
 ```
