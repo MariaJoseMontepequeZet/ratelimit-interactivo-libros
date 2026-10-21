@@ -10,14 +10,14 @@ import { rateLimit } from "express-rate-limit";
 const VENTANA_MS = Number(process.env.RATE_WINDOW_MS) || 60 * 1000;
 
 
-// ¿Por qué 100? 
-//      Con 5 por minuto (lo que había antes) un cliente normal que lista libros y abre un par de detalles ya se pasa y la API queda inutilizable. 100/min frena abusos pero deja usarla.
-const LIMITE_API = Number(process.env.RATE_LIMIT_API) || 100;
+// ¿Por qué 120? 
+//      Para una tienda de libros. Un cliente que navega el catálogo hace unas pocas peticiones por minuto, pero en una tienda varios cajeros o clientes pueden compartir la misma IP (el wifi del local). 120/min (2 por segundo) los deja trabajar y frena a un bot.
+const LIMITE_API = Number(process.env.RATE_LIMIT_API) || 120;
 
 
-// ¿Por qué 10? 
-//      Escribir (POST/PUT/DELETE) cambia datos y es más costoso/riesgoso que leer, así que se limita mucho más. Aun así 10/min deja trabajar a una persona real sin problema.
-const LIMITE_ESCRITURA = Number(process.env.RATE_LIMIT_WRITE) || 10;
+// ¿Por qué 30? 
+//      Escribir (POST/PUT/DELETE) cambia el catálogo, así que se limita más que leer. Pero el personal de la tienda a veces carga muchos libros seguidos (inventario nuevo), y con 10/min se bloquearían. 30/min alcanza para eso y evita que borren o llenen el catálogo muy rápido.
+const LIMITE_ESCRITURA = Number(process.env.RATE_LIMIT_WRITE) || 30;
 
 
 // Cuando se pasan del límite respondemos siempre con el mismo formato JSON y le decimos cuántos segundos faltan para poder volver a intentar.
@@ -77,7 +77,7 @@ export const apiLimiter = rateLimit({
 // ¿Por qué aparte del general? 
 //      Porque se aplica ADEMÁS del general, solo en las rutas que escriben, y así se puede ser permisivo leyendo y estricto escribiendo sin que un límite afecte al otro.
 // ¿Por qué no solo POST como antes? 
-//      Porque PUT y DELETE también modifican/borran datos y quedaban sin protección extra (se podían borrar todos los libros a ritmo de 100/min). Se usa en las rutas: router.post("/", escrituraLimiter, ...)
+//      Porque PUT y DELETE también modifican/borran datos y quedaban sin protección extra (se podían borrar todos los libros a ritmo del límite general). Se usa en las rutas: router.post("/", escrituraLimiter, ...)
 
 export const escrituraLimiter = rateLimit({
     ...base,

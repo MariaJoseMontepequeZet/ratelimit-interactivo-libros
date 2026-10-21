@@ -36,8 +36,8 @@ Ejemplo de body para POST y PUT:
 
 ## Rate limit
 
-- **General:** 100 peticiones por minuto por IP en todo `/api/`.
-- **Escrituras:** 10 por minuto por IP en POST, PUT y DELETE.
+- **General:** 120 peticiones por minuto por IP en todo `/api/`.
+- **Escrituras:** 30 por minuto por IP en POST, PUT y DELETE.
 - Si se pasan responde `429` con `reintentar_en_segundos`.
 - Las respuestas traen los headers `RateLimit-*`.
 
@@ -46,8 +46,9 @@ Se puede cambiar con variables de entorno:
 | Variable | Por defecto |
 | --- | --- |
 | `RATE_WINDOW_MS` | `60000` |
-| `RATE_LIMIT_API` | `100` |
-| `RATE_LIMIT_WRITE` | `10` |
+| `RATE_LIMIT_API` | `120` |
+| `RATE_LIMIT_WRITE` | `30` |
+| `TRUST_PROXY` | apagado (poner `1` si hay un proxy delante) |
 | `PORT` | `3000` |
 
 ## Códigos de respuesta
@@ -55,6 +56,7 @@ Se puede cambiar con variables de entorno:
 - `200` / `201`: todo bien
 - `400`: ID inválido, datos incorrectos o JSON mal escrito
 - `404`: el libro o la ruta no existe
+- `413`: el body es muy grande (máximo 10kb)
 - `409`: el libro ya existe (mismo título y autor)
 - `429`: demasiadas peticiones
 
