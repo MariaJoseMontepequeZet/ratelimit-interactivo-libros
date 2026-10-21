@@ -98,6 +98,12 @@ await prueba("ruta que no existe responde 404", async () => {
     assert.equal((await pedir("/api/otra-cosa")).status, 404);
 });
 
+await prueba("la página /tienda y sus archivos se sirven", async () => {
+    for (const archivo of ["/tienda/", "/tienda/estilos.css", "/tienda/app.js"]) {
+        assert.equal((await fetch(base + archivo)).status, 200, archivo);
+    }
+});
+
 servidor.close();
 
 

@@ -1,0 +1,111 @@
+/* Estilos simples de la tienda, sin librerías */
+
+:root {
+    --fondo: #f4f1ea;
+    --tarjeta: #ffffff;
+    --texto: #2b2b2b;
+    --principal: #7a4b2a;
+    --borde: #ddd5c8;
+    --ok: #3a8a4a;
+    --alerta: #d98c1f;
+    --error: #b83232;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+}
+
+header {
+    background: var(--principal);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+h1 { margin: 0; font-size: 1.4rem; }
+h2 { margin: 0 0 12px; font-size: 1.1rem; }
+
+main {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* En pantallas chicas las tarjetas van una debajo de la otra */
+@media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+}
+
+.tarjeta {
+    background: var(--tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+label { display: block; font-size: 0.85rem; margin-bottom: 10px; }
+
+input {
+    width: 100%;
+    margin-top: 4px;
+    padding: 8px;
+    border: 1px solid var(--borde);
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+button {
+    background: var(--principal);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+button:hover { opacity: 0.9; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secundario { background: #8a8a8a; }
+button.peligro { background: var(--error); }
+
+.botones { display: flex; gap: 8px; }
+.fila-titulo { display: flex; justify-content: space-between; align-items: center; }
+.oculto { display: none; }
+
+.tabla-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--borde); }
+td.acciones { white-space: nowrap; display: flex; gap: 6px; }
+
+.mensaje { min-height: 1.2em; font-size: 0.85rem; margin: 10px 0 0; }
+.mensaje.error { color: var(--error); }
+.mensaje.ok { color: var(--ok); }
+
+/* Medidor del rate limit */
+.medidor { min-width: 220px; font-size: 0.8rem; }
+.barra { background: rgba(255, 255, 255, 0.3); height: 8px; border-radius: 4px; margin-top: 4px; overflow: hidden; }
+#medidor-barra { height: 100%; width: 0; background: var(--ok); transition: width 0.3s, background 0.3s; }
+#medidor-barra.medio { background: var(--alerta); }
+#medidor-barra.bajo { background: var(--error); }
+
+.aviso {
+    background: var(--error);
+    color: white;
+    padding: 12px 24px;
+    text-align: center;
+    font-weight: 600;
+}

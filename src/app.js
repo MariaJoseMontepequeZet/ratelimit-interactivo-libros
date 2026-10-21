@@ -1,4 +1,6 @@
 import express from "express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { logger } from "./middlewares/logger.js";
 import { apiLimiter } from "./middlewares/rateLimit.js";
 import {errorHandler} from "./middlewares/errorHandler.js";
@@ -32,12 +34,20 @@ app.use(express.json({ limit: "10kb" }));
 app.use(logger);
 
 
+// Página web de la tienda (carpeta public), se abre en /tienda
+// La pongo antes del rate limit porque ese solo protege /api/, no los archivos de la página
+
+const carpetaPublic = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
+app.use("/tienda", express.static(carpetaPublic));
+
+
 // Ruta principal/home (cualquiera puede entrar sin restricción)
 
 app.get("/", (req, res) => {
     res.status(200).json({
         mensaje: "Bienvenido a la API de Libros protegida con express-rate-limit (Campuslands)",
         seguridad: "Middleware express-rate-limit activo en /api/ (Máx. 120 peticiones por minuto por IP, 30 en escrituras)",
+        interfaz: "GET /tienda (página web para usar la API)",
         almacenamiento: "Arreglo de Libros en memoria RAM (sin base de datos externa)",
         endpoints: {
             listar_libros: "GET /api/libros",
