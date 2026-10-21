@@ -1,14 +1,14 @@
 /* Estilos simples de la tienda, sin librerías */
 
 :root {
-    --fondo: #f4f1ea;
-    --tarjeta: #ffffff;
-    --texto: #2b2b2b;
-    --principal: #7a4b2a;
-    --borde: #ddd5c8;
-    --ok: #3a8a4a;
-    --alerta: #d98c1f;
-    --error: #b83232;
+    --fondo: #0d0d0f;
+    --tarjeta: #1a1a1f;
+    --texto: #ece8f4;
+    --principal: #7c3aed;
+    --borde: #34303f;
+    --ok: #34d399;
+    --alerta: #fbbf24;
+    --error: #ef4444;
 }
 
 * { box-sizing: border-box; }
@@ -21,7 +21,8 @@ body {
 }
 
 header {
-    background: var(--principal);
+    background: #000;
+    border-bottom: 2px solid var(--principal);
     color: white;
     padding: 16px 24px;
     display: flex;
@@ -65,6 +66,13 @@ input {
     border: 1px solid var(--borde);
     border-radius: 4px;
     font-size: 0.95rem;
+    background: #0d0d0f;
+    color: var(--texto);
+}
+
+input:focus {
+    outline: 2px solid var(--principal);
+    border-color: var(--principal);
 }
 
 button {
@@ -79,7 +87,7 @@ button {
 
 button:hover { opacity: 0.9; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-button.secundario { background: #8a8a8a; }
+button.secundario { background: #3f3a4d; }
 button.peligro { background: var(--error); }
 
 .botones { display: flex; gap: 8px; }
@@ -97,7 +105,7 @@ td.acciones { white-space: nowrap; display: flex; gap: 6px; }
 
 /* Medidor del rate limit */
 .medidor { min-width: 220px; font-size: 0.8rem; }
-.barra { background: rgba(255, 255, 255, 0.3); height: 8px; border-radius: 4px; margin-top: 4px; overflow: hidden; }
+.barra { background: #2a2635; height: 8px; border-radius: 4px; margin-top: 4px; overflow: hidden; }
 #medidor-barra { height: 100%; width: 0; background: var(--ok); transition: width 0.3s, background 0.3s; }
 #medidor-barra.medio { background: var(--alerta); }
 #medidor-barra.bajo { background: var(--error); }
